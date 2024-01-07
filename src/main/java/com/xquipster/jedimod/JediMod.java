@@ -173,7 +173,7 @@ public class JediMod
                 }
             }
         }
-        if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)){
+        if (Minecraft.getMinecraft().gameSettings.keyBindJump.isPressed()){
             if (Minecraft.getMinecraft().getCurrentServerData() != null){
                 for (String ip : ips1) {
                     if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {

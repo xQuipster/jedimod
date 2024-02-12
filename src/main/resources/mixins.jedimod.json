@@ -1,0 +1,8 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "package": "com.xquipster.jedimod.mixins",
+  "refmap": "refmap.jedimod.json",
+  "mixins": ["ScoreboardMixin"],
+  "client": [],
+  "server": []
+}

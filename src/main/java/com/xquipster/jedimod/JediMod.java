@@ -123,28 +123,6 @@ public class JediMod
         ClientRegistry.registerKeyBinding(reflectionBind);
         ClientRegistry.registerKeyBinding(blockerBind);
     }
-
-    @SubscribeEvent
-    public void scoreboard(RenderGameOverlayEvent event){
-        if (Minecraft.getMinecraft().getCurrentServerData() != null){
-            boolean a = false;
-            for (String ip : ips){
-                if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
-                    a = true;
-                    break;
-                }
-            }
-            for (String ip : ips1){
-                if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
-                    a = true;
-                    break;
-                }
-            }
-            if (a){
-
-            }
-        }
-    }
     @SubscribeEvent
     public void onKey(InputEvent.KeyInputEvent event){
         String msg = "/jfusjfjsdkosoorwi";

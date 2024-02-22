@@ -1,0 +1,16 @@
+[
+{
+  "modid": "jedimod",
+  "name": "JediMod",
+  "description": "Mod for Easy JediCrafts by xQuipster",
+  "version": "1.0",
+  "mcversion": "1.12.2",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["xQuipster"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

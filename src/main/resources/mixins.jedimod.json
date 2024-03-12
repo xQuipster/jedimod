@@ -1,0 +1,10 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "package": "com.xquipster.jedimod.mixins",
+  "refmap": "refmap.jedimod.json",
+  "mixins": [
+    "GuiIngameMixin", "SkinManagerMixin", "NetworkPlayerInfoMixin", "ItemRendererMixin"
+  ],
+  "client": [],
+  "server": []
+}

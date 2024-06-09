@@ -6,21 +6,14 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.xquipster.jedimod.api.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.StartupQuery;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -30,19 +23,17 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.input.Keyboard;
 
 import javax.net.ssl.*;
-import java.awt.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import java.util.logging.Logger;
 
 @Mod(modid = JediMod.MOD_ID, name = JediMod.NAME, version = JediMod.VERSION)
 @SideOnly(Side.CLIENT)
@@ -143,7 +134,7 @@ public class JediMod
         keyBindings.add(attractionBind);
         ips = new ArrayList<>();
         try {
-            URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedicraft-newgen-easy/main/ips.txt");
+            URL url = new URL("http://dsdifie1fs.kesug.com/newgenips.txt");
 
             URLConnection con = url.openConnection();
             InputStream is = con.getInputStream();
@@ -164,7 +155,7 @@ public class JediMod
         }
         ips1 = new ArrayList<>();
         try {
-            URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedicraft-new-easy/main/ips.txt");
+            URL url = new URL("http://dsdifie1fs.kesug.com/newips.txt");
 
             URLConnection con = url.openConnection();
             InputStream is = con.getInputStream();

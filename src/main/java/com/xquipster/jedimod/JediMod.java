@@ -91,7 +91,7 @@ public class JediMod
         AutoUpdater updater = null;
         if (thisMod != null){
             System.out.println("[JediMod] Mod file: " + thisMod.getAbsolutePath());
-            updater = new AutoUpdater(thisMod, "https://raw.githubusercontent.com/xQuipster/jedimod/main/checksum.txt", "https://github.com/xQuipster/jedimod/releases/download/autoUpdate/jedimod.jar");
+            updater = new AutoUpdater(thisMod, "https://raw.githubusercontent.com/xQuipster/jedimod/master/checksum.txt", "https://github.com/xQuipster/jedimod/releases/download/autoUpdate/jedimod.jar");
             updater.start();
         }else{
             System.out.println("[JediMod] Failed to find mod file!");

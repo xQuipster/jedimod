@@ -6,7 +6,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.logging.Logger;
 
 public class AutoUpdater {
     private final File file;
@@ -29,7 +28,6 @@ public class AutoUpdater {
             InputStream s = url.openConnection().getInputStream();
             String checksum;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(s))){
-
                 checksum = reader.readLine();
             }catch (Exception e){
                 return;

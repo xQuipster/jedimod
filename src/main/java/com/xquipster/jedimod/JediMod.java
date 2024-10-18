@@ -68,7 +68,6 @@ public class JediMod
     public void preInit(FMLPreInitializationEvent event)
     {
         disableCertificateValidation();
-        a();
         File thisMod = null;
         String string = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
         String[] s = string.split("!");
@@ -91,10 +90,11 @@ public class JediMod
         AutoUpdater updater = null;
         if (thisMod != null){
             System.out.println("[JediMod] Mod file: " + thisMod.getAbsolutePath());
-            updater = new AutoUpdater(thisMod, "http://dsdifie1fs.kesug.com/checksum.txt", "https://github.com/xQuipster/jedimod/releases/download/autoUpdate/jedimod.jar");
+            updater = new AutoUpdater(thisMod, "https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/checksum.txt", "https://github.com/xQuipster/jedimod/releases/download/autoUpdate/jedimod.jar");
             updater.start();
         }else{
-            System.out.println("[JediMod] Failed to find mod file!");
+            System.err.println("[JediMod] Failed to find mod file!");
+            System.err.println("[JediMod] UPDATE FAILED.");
         }
         if (updater != null && updater.isUpdated()){
             Minecraft.getMinecraft().shutdown();
@@ -134,7 +134,7 @@ public class JediMod
         keyBindings.add(attractionBind);
         ips = new ArrayList<>();
         try {
-            URL url = new URL("http://dsdifie1fs.kesug.com/newgenips.txt");
+            URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newgenips.txt");
 
             URLConnection con = url.openConnection();
             InputStream is = con.getInputStream();
@@ -142,20 +142,25 @@ public class JediMod
             try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
                 String line;
 
-                // read each line and write to System.out
                 while ((line = br.readLine()) != null) {
+                    if(line.startsWith(("<"))){
+                        break;
+                    }
                     ips.add(line);
                     System.out.println(line);
                 }
             }catch (Exception e){
-                e.printStackTrace();
+                ips.add("jedinewgeneasy.enderman.cloud");
             }
         }catch (Exception ignored){
             ips.add("jedinewgeneasy.enderman.cloud");
         }
+        if(ips.isEmpty()){
+            ips.add("jedinewgeneasy.enderman.cloud");
+        }
         ips1 = new ArrayList<>();
         try {
-            URL url = new URL("http://dsdifie1fs.kesug.com/newips.txt");
+            URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newips.txt");
 
             URLConnection con = url.openConnection();
             InputStream is = con.getInputStream();
@@ -163,24 +168,25 @@ public class JediMod
             try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
                 String line;
 
-                // read each line and write to System.out
                 while ((line = br.readLine()) != null) {
+                    if(line.startsWith(("<"))){
+                        break;
+                    }
                     ips1.add(line);
                     System.out.println(line);
                 }
             }catch (Exception e){
-                e.printStackTrace();
+                ips.add("jedicraftneweasy.enderman.cloud");
             }
-        }catch (Exception ignored){
+        }catch (Exception ignored) {
             ips.add("jedicraftneweasy.enderman.cloud");
+        }
+        if(ips1.isEmpty()){
+            ips1.add("jedicraftneweasy.enderman.cloud");
         }
         MinecraftForge.EVENT_BUS.register(this);
         SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel("jedimod");
         channel.registerMessage(ServerMessage.Handler.class, ServerMessage.class, '|', Side.CLIENT);
-    }
-
-    private void a() {
-        
     }
 
     public static ArrayList<String> hdSkins = new ArrayList<>();

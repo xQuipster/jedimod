@@ -1,5 +1,7 @@
 package com.xquipster.jedimod.api;
 
+import org.lwjgl.Sys;
+
 import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -19,7 +21,7 @@ public class AutoUpdater {
     public boolean isUpdated() {
         return updated;
     }
-
+    private boolean success = false;
     private final String hashSumUrl;
     private final String fileUrl;
     public void start(){
@@ -35,10 +37,11 @@ public class AutoUpdater {
             String thisChecksum = ServerMessage.Handler.getChecksum(Files.readAllBytes(Paths.get(file.toURI())));
             if (!thisChecksum.equals(checksum)){
                 update();
-            }
+            }else success = true;
         }catch (Exception e){
-            System.out.println("[JediMod] Failed to get checksum! Exception: " + e.getMessage());
+            System.err.println("[JediMod] Failed to get checksum! Exception: " + e.getMessage());
         }
+        System.err.println("[JediMod] UPDATE FAILED.");
     }
 
     private void update() {
@@ -48,11 +51,12 @@ public class AutoUpdater {
             try (FileOutputStream stream = new FileOutputStream(file.getAbsolutePath())){
                 stream.getChannel().transferFrom(channel, 0, Long.MAX_VALUE);
                 updated = true;
+                success = true;
             }catch (Exception ignored){
-                System.out.println("[JediMod] Failed to write file!");
+                System.err.println("[JediMod] Failed to write file!");
             }
         }catch (Exception ignored){
-            System.out.println("[JediMod] Failed to download file!");
+            System.err.println("[JediMod] Failed to download file!");
         }
     }
 }

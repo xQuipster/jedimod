@@ -4,6 +4,7 @@ import org.lwjgl.Sys;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
@@ -27,7 +28,9 @@ public class AutoUpdater {
     public void start(){
         try {
             URL url = new URL(hashSumUrl);
-            InputStream s = url.openConnection().getInputStream();
+            URLConnection con = url.openConnection();
+            con.setConnectTimeout(3000);
+            InputStream s = con.getInputStream();
             String checksum;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(s))){
                 checksum = reader.readLine();

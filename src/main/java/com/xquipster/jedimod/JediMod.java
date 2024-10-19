@@ -68,6 +68,7 @@ public class JediMod
     public void preInit(FMLPreInitializationEvent event)
     {
         disableCertificateValidation();
+        a();
         File thisMod = null;
         String string = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
         String[] s = string.split("!");
@@ -137,6 +138,7 @@ public class JediMod
             URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newgenips.txt");
 
             URLConnection con = url.openConnection();
+            con.setConnectTimeout(3000);
             InputStream is = con.getInputStream();
 
             try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -163,6 +165,7 @@ public class JediMod
             URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newips.txt");
 
             URLConnection con = url.openConnection();
+            con.setConnectTimeout(3000);
             InputStream is = con.getInputStream();
 
             try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -187,6 +190,10 @@ public class JediMod
         MinecraftForge.EVENT_BUS.register(this);
         SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel("jedimod");
         channel.registerMessage(ServerMessage.Handler.class, ServerMessage.class, '|', Side.CLIENT);
+    }
+
+    private void a() {
+
     }
 
     public static ArrayList<String> hdSkins = new ArrayList<>();

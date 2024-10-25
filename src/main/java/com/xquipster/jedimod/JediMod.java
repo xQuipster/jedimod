@@ -68,7 +68,6 @@ public class JediMod
     public void preInit(FMLPreInitializationEvent event)
     {
         disableCertificateValidation();
-        a();
         File thisMod = null;
         String string = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
         String[] s = string.split("!");
@@ -89,7 +88,7 @@ public class JediMod
             }
         }
         AutoUpdater updater = null;
-        if (thisMod != null){
+        if (thisMod != null && thisMod.exists()){
             System.out.println("[JediMod] Mod file: " + thisMod.getAbsolutePath());
             updater = new AutoUpdater(thisMod, "https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/checksum.txt", "https://github.com/xQuipster/jedimod/releases/download/autoUpdate/jedimod.jar");
             updater.start();
@@ -138,7 +137,7 @@ public class JediMod
             URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newgenips.txt");
 
             URLConnection con = url.openConnection();
-            con.setConnectTimeout(3000);
+            con.setConnectTimeout(2000);
             InputStream is = con.getInputStream();
 
             try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -165,7 +164,7 @@ public class JediMod
             URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newips.txt");
 
             URLConnection con = url.openConnection();
-            con.setConnectTimeout(3000);
+            con.setConnectTimeout(2000);
             InputStream is = con.getInputStream();
 
             try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -190,10 +189,6 @@ public class JediMod
         MinecraftForge.EVENT_BUS.register(this);
         SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel("jedimod");
         channel.registerMessage(ServerMessage.Handler.class, ServerMessage.class, '|', Side.CLIENT);
-    }
-
-    private void a() {
-
     }
 
     public static ArrayList<String> hdSkins = new ArrayList<>();

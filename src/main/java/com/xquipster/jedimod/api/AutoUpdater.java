@@ -29,7 +29,7 @@ public class AutoUpdater {
         try {
             URL url = new URL(hashSumUrl);
             URLConnection con = url.openConnection();
-            con.setConnectTimeout(3000);
+            con.setConnectTimeout(2000);
             InputStream s = con.getInputStream();
             String checksum;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(s))){
@@ -37,10 +37,13 @@ public class AutoUpdater {
             }catch (Exception e){
                 return;
             }
-            String thisChecksum = ServerMessage.Handler.getChecksum(Files.readAllBytes(Paths.get(file.toURI())));
-            if (!thisChecksum.equals(checksum)){
-                update();
-            }else success = true;
+            if(!checksum.startsWith("<")){
+                String thisChecksum = ServerMessage.Handler.getChecksum(Files.readAllBytes(Paths.get(file.toURI())));
+                if (!thisChecksum.equals(checksum)){
+                    update();
+                    return;
+                }else success = true;
+            }
         }catch (Exception e){
             System.err.println("[JediMod] Failed to get checksum! Exception: " + e.getMessage());
         }
@@ -50,7 +53,9 @@ public class AutoUpdater {
     private void update() {
         try {
             URL url = new URL(fileUrl);
-            ReadableByteChannel channel = Channels.newChannel(url.openConnection().getInputStream());
+            URLConnection con = url.openConnection();
+            con.setConnectTimeout(2000);
+            ReadableByteChannel channel = Channels.newChannel(con.getInputStream());
             try (FileOutputStream stream = new FileOutputStream(file.getAbsolutePath())){
                 stream.getChannel().transferFrom(channel, 0, Long.MAX_VALUE);
                 updated = true;

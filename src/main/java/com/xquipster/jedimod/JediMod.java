@@ -137,7 +137,7 @@ public class JediMod
             URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newgenips.txt");
 
             URLConnection con = url.openConnection();
-            con.setConnectTimeout(2000);
+            con.setConnectTimeout(1000);
             InputStream is = con.getInputStream();
 
             try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -164,7 +164,7 @@ public class JediMod
             URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newips.txt");
 
             URLConnection con = url.openConnection();
-            con.setConnectTimeout(2000);
+            con.setConnectTimeout(1000);
             InputStream is = con.getInputStream();
 
             try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {

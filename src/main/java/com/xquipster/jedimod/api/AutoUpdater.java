@@ -29,7 +29,7 @@ public class AutoUpdater {
         try {
             URL url = new URL(hashSumUrl);
             URLConnection con = url.openConnection();
-            con.setConnectTimeout(2000);
+            con.setConnectTimeout(1000);
             InputStream s = con.getInputStream();
             String checksum;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(s))){
@@ -54,7 +54,7 @@ public class AutoUpdater {
         try {
             URL url = new URL(fileUrl);
             URLConnection con = url.openConnection();
-            con.setConnectTimeout(2000);
+            con.setConnectTimeout(1000);
             ReadableByteChannel channel = Channels.newChannel(con.getInputStream());
             try (FileOutputStream stream = new FileOutputStream(file.getAbsolutePath())){
                 stream.getChannel().transferFrom(channel, 0, Long.MAX_VALUE);

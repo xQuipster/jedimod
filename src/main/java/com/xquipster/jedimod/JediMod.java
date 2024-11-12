@@ -3,7 +3,10 @@ package com.xquipster.jedimod;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
-import com.xquipster.jedimod.api.*;
+import com.xquipster.jedimod.api.AbilityCd;
+import com.xquipster.jedimod.api.PlayerRender;
+import com.xquipster.jedimod.api.ServerMessage;
+import com.xquipster.jedimod.api.Skin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.resources.I18n;
@@ -25,12 +28,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.net.ssl.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -68,38 +65,6 @@ public class JediMod
     public void preInit(FMLPreInitializationEvent event)
     {
         disableCertificateValidation();
-        File thisMod = null;
-        String string = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-        String[] s = string.split("!");
-        System.out.println("[JediMod] Mod class: " + string);
-        if (s.length == 2){
-            try {
-                thisMod = new File(s[0].substring(6));
-            }catch (Exception ignored){
-            }
-        }else if (s.length > 2){
-            try {
-                StringBuilder str = new StringBuilder();
-                for (int i = 0; i < s.length - 1; i++){
-                    str.append("!").append(s[i]);
-                }
-                thisMod = new File(str.substring(7));
-            }catch (Exception ignored){
-            }
-        }
-        AutoUpdater updater = null;
-        if (thisMod != null && thisMod.exists()){
-            System.out.println("[JediMod] Mod file: " + thisMod.getAbsolutePath());
-            updater = new AutoUpdater(thisMod, "https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/checksum.txt", "https://github.com/xQuipster/jedimod/releases/download/autoUpdate/jedimod.jar");
-            updater.start();
-        }else{
-            System.err.println("[JediMod] Failed to find mod file!");
-            System.err.println("[JediMod] UPDATE FAILED.");
-        }
-        if (updater != null && updater.isUpdated()){
-            Minecraft.getMinecraft().shutdown();
-            return;
-        }
         MOD = this;
         lightningBind = new KeyBinding(I18n.format("binds.lightning"), 0, "JediMod");
         pushBind = new KeyBinding(I18n.format("binds.push"), 0, "JediMod");
@@ -133,59 +98,9 @@ public class JediMod
         keyBindings.add(disappearanceBind);
         keyBindings.add(attractionBind);
         ips = new ArrayList<>();
-        try {
-            URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newgenips.txt");
-
-            URLConnection con = url.openConnection();
-            con.setConnectTimeout(1000);
-            InputStream is = con.getInputStream();
-
-            try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-                String line;
-
-                while ((line = br.readLine()) != null) {
-                    if(line.startsWith(("<"))){
-                        break;
-                    }
-                    ips.add(line);
-                    System.out.println(line);
-                }
-            }catch (Exception e){
-                ips.add("jedinewgeneasy.enderman.cloud");
-            }
-        }catch (Exception ignored){
-            ips.add("jedinewgeneasy.enderman.cloud");
-        }
-        if(ips.isEmpty()){
-            ips.add("jedinewgeneasy.enderman.cloud");
-        }
+        ips.add("jedinewgeneasy.enderman.cloud");
         ips1 = new ArrayList<>();
-        try {
-            URL url = new URL("https://raw.githubusercontent.com/xQuipster/jedimod/refs/heads/master/newips.txt");
-
-            URLConnection con = url.openConnection();
-            con.setConnectTimeout(1000);
-            InputStream is = con.getInputStream();
-
-            try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-                String line;
-
-                while ((line = br.readLine()) != null) {
-                    if(line.startsWith(("<"))){
-                        break;
-                    }
-                    ips1.add(line);
-                    System.out.println(line);
-                }
-            }catch (Exception e){
-                ips.add("jedicraftneweasy.enderman.cloud");
-            }
-        }catch (Exception ignored) {
-            ips.add("jedicraftneweasy.enderman.cloud");
-        }
-        if(ips1.isEmpty()){
-            ips1.add("jedicraftneweasy.enderman.cloud");
-        }
+        ips1.add("jedicraftneweasy.enderman.cloud");
         MinecraftForge.EVENT_BUS.register(this);
         SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel("jedimod");
         channel.registerMessage(ServerMessage.Handler.class, ServerMessage.class, '|', Side.CLIENT);

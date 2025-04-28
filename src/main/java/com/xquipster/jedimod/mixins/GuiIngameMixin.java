@@ -23,8 +23,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 
 @Mixin(GuiIngame.class)
@@ -43,7 +42,7 @@ public class GuiIngameMixin extends Gui {
         {
             public boolean apply(@Nullable Score p_apply_1_)
             {
-                return p_apply_1_.getPlayerName() != null && !p_apply_1_.getPlayerName().startsWith("#");
+                return p_apply_1_ != null && !p_apply_1_.getPlayerName().startsWith("#");
             }
         }));
 
@@ -56,56 +55,137 @@ public class GuiIngameMixin extends Gui {
             collection = list;
         }
 
-        int i = this.getFontRenderer().getStringWidth(objective.getDisplayName());
+        int maxWidth = this.getFontRenderer().getStringWidth(objective.getDisplayName());
 
         for (Score score : collection)
         {
             ScorePlayerTeam scoreplayerteam = scoreboard.getPlayersTeam(score.getPlayerName());
             String s = ScorePlayerTeam.formatPlayerName(scoreplayerteam, score.getPlayerName()) + ": " + TextFormatting.RED + score.getScorePoints();
-            i = Math.max(i, this.getFontRenderer().getStringWidth(s));
+            maxWidth = Math.max(maxWidth, this.getFontRenderer().getStringWidth(s));
         }
+        boolean b = false;
         boolean a = false;
         if (Minecraft.getMinecraft().getCurrentServerData() != null){
-            for (String ip : JediMod.MOD.ips){
+            for (String ip : JediMod.MOD.ips2) {
                 if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
-                    a = true;
+                    b = true;
                     break;
                 }
             }
-            for (String ip : JediMod.MOD.ips1){
-                if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
-                    a = true;
-                    break;
+            if(!b){
+                for (String ip : JediMod.MOD.ips) {
+                    if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
+                        b = true;
+                        break;
+                    }
+                }
+                if (!b) {
+                    for (String ip : JediMod.MOD.ips1) {
+                        if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
+                            a = true;
+                            break;
+                        }
+                    }
                 }
             }
         }
 
-        int i1 = collection.size() * this.getFontRenderer().FONT_HEIGHT;
-        int j1 = scaledRes.getScaledHeight() / 2 + i1 / 3;
-        int k1 = 3;
-        int l1 = scaledRes.getScaledWidth() - i - 3;
-        int j = 0;
+        if(!b){
+            int i1 = collection.size() * this.getFontRenderer().FONT_HEIGHT;
+            int j1 = scaledRes.getScaledHeight() / 2 + i1 / 3;
+            int l1 = scaledRes.getScaledWidth() - maxWidth - 3;
+            int j = 0;
+            for (Score score1 : collection) {
+                ++j;
+                ScorePlayerTeam scoreplayerteam1 = scoreboard.getPlayersTeam(score1.getPlayerName());
+                String entry = ScorePlayerTeam.formatPlayerName(scoreplayerteam1, score1.getPlayerName());
+                String score = TextFormatting.RED + "" + score1.getScorePoints();
+                int k = j1 - j * this.getFontRenderer().FONT_HEIGHT;
+                int l = scaledRes.getScaledWidth() - 1;
+                drawRect(l1 - (a ? -4 : 2), k, l, k + this.getFontRenderer().FONT_HEIGHT, 1342177280);
 
-        for (Score score1 : collection)
-        {
-            ++j;
-            ScorePlayerTeam scoreplayerteam1 = scoreboard.getPlayersTeam(score1.getPlayerName());
-            String s1 = ScorePlayerTeam.formatPlayerName(scoreplayerteam1, score1.getPlayerName());
-            String s2 = TextFormatting.RED + "" + score1.getScorePoints();
-            int k = j1 - j * this.getFontRenderer().FONT_HEIGHT;
-            int l = scaledRes.getScaledWidth() - 3 + 2;
-            drawRect(l1 - (a ? -4 : 2), k, l, k + this.getFontRenderer().FONT_HEIGHT, 1342177280);
-            this.getFontRenderer().drawString(s1, l1 + (a ? 10 : 0), k, 553648127);
-            if (!a){
-                this.getFontRenderer().drawString(s2, l - this.getFontRenderer().getStringWidth(s2), k, 553648127);
+                this.getFontRenderer().drawString(entry, l1 + (a ? 10 : 0), k, 553648127);
+                if (!a) {
+                    this.getFontRenderer().drawString(score, l - this.getFontRenderer().getStringWidth(score), k, 553648127);
+                }
+
+                if (j == collection.size()) {
+                    String s3 = objective.getDisplayName();
+                    drawRect(l1 - (a ? -4 : 2), k - this.getFontRenderer().FONT_HEIGHT - 1, l, k - 1, 1610612736);
+                    drawRect(l1 - (a ? -4 : 2), k - 1, l, k, 1342177280);
+                    this.getFontRenderer().drawString(s3, l1 + (a ? 3 : 0) + maxWidth / 2 - this.getFontRenderer().getStringWidth(s3) / 2, k - this.getFontRenderer().FONT_HEIGHT, 0x20FFFFFF);
+                }
             }
+        }else{
+            String site = "Дискорд: /ds";
+            int maxEntryWidth = this.getFontRenderer().getStringWidth(site);
+            ArrayList<Map.Entry<String, String>> entries = new ArrayList<>();
+            for (Score score : collection){
+                String[] splitted = ScorePlayerTeam.formatPlayerName(scoreboard.getPlayersTeam(score.getPlayerName()), score.getPlayerName()).split(":");
+                if(splitted.length < 2){
+                    maxEntryWidth = Integer.max(maxEntryWidth, this.getFontRenderer().getStringWidth(splitted[0]));
+                    entries.add(new AbstractMap.SimpleEntry<>(splitted[0], null));
+                    continue;
+                }
+                String key = splitted[0] + ":";
+                StringBuilder valueBuilder = new StringBuilder();
+                for (int i = 1; i < splitted.length; i++){
+                    valueBuilder.append(splitted[i]);
+                }
+                String value = valueBuilder.toString();
+                if(!key.contains("Фракция") && value.length() > 3){
+                    value = value.substring(3);
+                }
+                maxEntryWidth = Integer.max(maxEntryWidth, this.getFontRenderer().getStringWidth(key) + 6 + this.getFontRenderer().getStringWidth(value));
+                entries.add(new AbstractMap.SimpleEntry<>(key, value));
+            }
+            int height = (collection.size() + 2) * (this.getFontRenderer().FONT_HEIGHT + 3) - 3;
+            int endY = (scaledRes.getScaledHeight() + height) / 2;
+            int startY = endY - height;
+            int startX = scaledRes.getScaledWidth() - 25 - maxEntryWidth;
+            int endX = scaledRes.getScaledWidth() - 9;
+            int color = 0x95000000;
+            //main one
+            drawRect(startX, startY, endX, endY, color);
+            //northern less wide
+            drawRect(startX + 2, startY - 2, endX - 2, startY, color);
+            //southern less wide
+            drawRect(startX + 2, endY, endX - 2, endY + 2, color);
+            // northern border
+            drawRect(startX + 2, startY - 3, endX - 2, startY - 2, 0x6C303030);
+            // southern border
+            drawRect(startX + 2, endY + 2, endX - 2, endY + 3, 0x6C303030);
+            // western border
+            drawRect(startX - 1, startY - 1, startX, endY + 1, 0x6C303030);
+            // eastern border
+            drawRect(endX, startY - 1, endX + 1, endY + 1, 0x6C303030);
+            // north-western border (x)
+            drawRect(startX, startY - 1, startX + 2, startY, 0x6C303030);
+            // north-eastern border (x)
+            drawRect(endX - 2, startY - 1, endX, startY, 0x6C303030);
+            // north-western border (y)
+            drawRect(startX + 1, startY - 3, startX + 2, startY - 1, 0x6C303030);
+            // north-eastern border (y)
+            drawRect(endX - 2, startY - 3, endX - 1, startY - 1, 0x6C303030);
+            // south-western border (x)
+            drawRect(startX, endY, startX + 2, endY + 1, 0x6C303030);
+            // south-eastern border (x)
+            drawRect(endX - 2, endY, endX, endY + 1, 0x6C303030);
+            // south-western border (y)
+            drawRect(startX + 1, endY + 1, startX + 2, endY + 3, 0x6C303030);
+            // south-eastern border (y)
+            drawRect(endX - 2, endY + 1, endX - 1, endY + 3, 0x6C303030);
+            String displayName = objective.getDisplayName();
+            this.getFontRenderer().drawStringWithShadow(displayName, startX + (float) (endX - startX - this.getFontRenderer().getStringWidth(displayName)) / 2, startY + 6, 0x20FFFFFF);
+            this.getFontRenderer().drawStringWithShadow(site, startX + (float) (endX - startX - this.getFontRenderer().getStringWidth(site)) / 2, endY - 7 - ((float) getFontRenderer().FONT_HEIGHT / 2), 0xFFFFFFFF);
 
-            if (j == collection.size())
-            {
-                String s3 = objective.getDisplayName();
-                drawRect(l1 - (a ? -4 : 2), k - this.getFontRenderer().FONT_HEIGHT - 1, l, k - 1, 1610612736);
-                drawRect(l1 - (a ? -4 : 2), k - 1, l, k, 1342177280);
-                this.getFontRenderer().drawString(s3, l1 + (a ? 3 : 0) + i / 2 - this.getFontRenderer().getStringWidth(s3) / 2, k - this.getFontRenderer().FONT_HEIGHT, 553648127);
+            int i = 0;
+            for (Map.Entry<String, String> entry : entries){
+                i++;
+                this.getFontRenderer().drawStringWithShadow(entry.getKey(), (float) (startX + 10), (float) (endY - (0.222 / 4.139) * height - (this.getFontRenderer().FONT_HEIGHT + 3) * i), 553648127);
+                if(entry.getValue() != null){
+                    this.getFontRenderer().drawStringWithShadow(entry.getValue(), (float) (endX - 6 - getFontRenderer().getStringWidth(entry.getValue())), (float) (endY - (0.222 / 4.139) * height - (this.getFontRenderer().FONT_HEIGHT + 3) * i), 0xFF4A8CEC);
+                }
             }
         }
 

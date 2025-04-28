@@ -50,7 +50,7 @@ public class ItemRendererMixin {
         GlStateManager.rotate(200.0F, 1.0F, 0.0F, 0.0F);
         GlStateManager.rotate(f * -135.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.translate(f * 5.6F, 0.0F, 0.0F);
-        PlayerRender renderplayer = JediMod.MOD.renderers.getOrDefault(abstractclientplayer.getName(), new PlayerRender(renderManager, JediMod.MOD.slim.contains(abstractclientplayer.getName()), JediMod.hdSkins.contains(abstractclientplayer.getName()), JediMod.hdCapes.contains(abstractclientplayer.getName())));
+        PlayerRender renderplayer = JediMod.MOD.renderers.getOrDefault(abstractclientplayer.getName(), new PlayerRender(renderManager, JediMod.MOD.slim.getOrDefault(abstractclientplayer.getName(), abstractclientplayer.getSkinType().equals("slim"))));
         if (!JediMod.MOD.renderers.containsKey(abstractclientplayer.getName())){
             JediMod.MOD.renderers.put(abstractclientplayer.getName(), renderplayer);
         }

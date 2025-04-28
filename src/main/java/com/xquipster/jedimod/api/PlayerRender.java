@@ -24,12 +24,12 @@ public class PlayerRender extends RenderLivingBase<AbstractClientPlayer> {
 
     public PlayerRender(RenderManager renderManager)
     {
-        this(renderManager, false, false, false);
+        this(renderManager, false);
     }
 
-    public PlayerRender(RenderManager renderManager, boolean useSmallArms, boolean hdSkin, boolean hdCape)
+    public PlayerRender(RenderManager renderManager, boolean useSmallArms)
     {
-        super(renderManager, new PlayerModel(0.0F, useSmallArms, hdSkin, hdCape), 0.5F);
+        super(renderManager, new PlayerModel(0.0F, useSmallArms), 0.5F);
         this.addLayer(new LayerBipedArmor(this));
         this.addLayer(new LayerHeldItem(this));
         this.addLayer(new LayerArrow(this));

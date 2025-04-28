@@ -14,6 +14,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -27,9 +28,6 @@ import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import javax.net.ssl.*;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.*;
 
 @Mod(modid = JediMod.MOD_ID, name = JediMod.NAME, version = JediMod.VERSION)
@@ -60,11 +58,11 @@ public class JediMod
     public ArrayList<KeyBinding> keyBindings;
     public ArrayList<String> ips;
     public ArrayList<String> ips1;
+    public ArrayList<String> ips2;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
-        disableCertificateValidation();
         MOD = this;
         lightningBind = new KeyBinding(I18n.format("binds.lightning"), 0, "JediMod");
         pushBind = new KeyBinding(I18n.format("binds.push"), 0, "JediMod");
@@ -101,41 +99,34 @@ public class JediMod
         ips.add("jedinewgeneasy.enderman.cloud");
         ips1 = new ArrayList<>();
         ips1.add("jedicraftneweasy.enderman.cloud");
+        ips2 = new ArrayList<>();
+        ips2.add("jedineweasy.joinserver.xyz");
         MinecraftForge.EVENT_BUS.register(this);
         SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel("jedimod");
         channel.registerMessage(ServerMessage.Handler.class, ServerMessage.class, '|', Side.CLIENT);
     }
 
-    public static ArrayList<String> hdSkins = new ArrayList<>();
-    public static ArrayList<String> hdCapes = new ArrayList<>();
     public ArrayList<String> texturesLoad = new ArrayList<>();
 
     public static ArrayList<String> currentlyLoading = new ArrayList<>();
     public HashMap<ItemStack, AbilityCd> abilityCd = new HashMap<>();
     public Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> getTextures(GameProfile profile){
         Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = Maps.newHashMap();
-        ArrayList<Skin> skins = getSkins();
-        if (!skins.isEmpty()){
-            for (Skin s : skins){
-                if (s.getName().equalsIgnoreCase(profile.getName())){
-                    if (!s.getSkin().equals("")){
-                        map.put(MinecraftProfileTexture.Type.SKIN, new MinecraftProfileTexture(s.getSkin(), null));
-                    }
-                    if (!s.getCape().equals("")){
-                        map.put(MinecraftProfileTexture.Type.CAPE, new MinecraftProfileTexture(s.getCape(), null));
-                    }
-                }
+        for (Skin skin : getSkins()){
+            if(Objects.equals(skin.getName(), profile.getName())){
+                if(skin.getSkin() != null) map.put(MinecraftProfileTexture.Type.SKIN, new MinecraftProfileTexture(profile.getName() + "_skin", null));
+                if(skin.getCape() != null) map.put(MinecraftProfileTexture.Type.CAPE, new MinecraftProfileTexture(profile.getName() + "_cape", null));
             }
         }
         return map;
     }
 
-    public ArrayList<String> slim = new ArrayList<>();
+    public HashMap<String, Boolean> slim = new HashMap<>();
     public HashMap<String, PlayerRender> renderers = new HashMap<>();
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Pre event){
         event.setCanceled(true);
-        PlayerRender render = renderers.getOrDefault(event.getEntityPlayer().getName(), new PlayerRender(Minecraft.getMinecraft().getRenderManager(), slim.contains(event.getEntityPlayer().getName()), hdSkins.contains(event.getEntityPlayer().getName()), hdCapes.contains(event.getEntityPlayer().getName())));
+        PlayerRender render = renderers.getOrDefault(event.getEntityPlayer().getName(), new PlayerRender(Minecraft.getMinecraft().getRenderManager(), slim.getOrDefault(event.getEntityPlayer().getName(), ((AbstractClientPlayer) event.getEntityPlayer()).getSkinType().equals("slim"))));
         if (!renderers.containsKey(event.getEntityPlayer().getName())){
             renderers.put(event.getEntityPlayer().getName(), render);
         }
@@ -146,6 +137,11 @@ public class JediMod
         skins.clear();
         abilityCd.clear();
         renderers.clear();
+        ServerMessage.Handler.clearTextureBuffer();
+    }
+    @SubscribeEvent
+    public void onPlayerAttack(AttackEntityEvent event){
+        event.setCanceled(true);
     }
     public final ArrayList<Skin> skins = new ArrayList<>();
 
@@ -169,6 +165,12 @@ public class JediMod
                     break;
                 }
             }
+            for (String ip : ips2){
+                if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
+                    b = true;
+                    break;
+                }
+            }
         }
         if (b){
             Timer timer = new Timer("1");
@@ -180,28 +182,6 @@ public class JediMod
             };
             timer.schedule(task, 1000);
         }
-    }
-    public static void disableCertificateValidation() {
-        // Create a trust manager that does not validate certificate chains
-        TrustManager[] trustAllCerts = new TrustManager[] {
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[0];
-                    }
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                }};
-
-        // Ignore differences between given hostname and certificate hostname
-        HostnameVerifier hv = (hostname, session) -> true;
-
-        // Install the all-trusting trust manager
-        try {
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier(hv);
-        } catch (Exception ignored) {}
     }
 
     public void addSkin(Skin skin){
@@ -293,6 +273,14 @@ public class JediMod
                     if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
                         a = true;
                         break;
+                    }
+                }
+                if(!a){
+                    for (String ip : ips2) {
+                        if (Minecraft.getMinecraft().getCurrentServerData().serverIP.equalsIgnoreCase(ip)) {
+                            a = true;
+                            break;
+                        }
                     }
                 }
             }

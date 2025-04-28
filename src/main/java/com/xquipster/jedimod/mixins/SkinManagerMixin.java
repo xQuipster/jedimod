@@ -5,16 +5,17 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.InsecureTextureException;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.xquipster.jedimod.JediMod;
-import com.xquipster.jedimod.api.ImageBufferDownloadCustom;
+import com.xquipster.jedimod.api.ImageBufferSkin;
 import com.xquipster.jedimod.api.Skin;
+import com.xquipster.jedimod.api.ThreadLoadSkin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IImageBuffer;
-import net.minecraft.client.renderer.ThreadDownloadImageData;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
+import org.apache.logging.log4j.LogManager;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -25,6 +26,7 @@ import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -49,27 +51,51 @@ public class SkinManagerMixin {
     @Overwrite
     public ResourceLocation loadSkin(final MinecraftProfileTexture profileTexture, final MinecraftProfileTexture.Type textureType, @Nullable final SkinManager.SkinAvailableCallback skinAvailableCallback)
     {
-        String player = "";
-        String s1 = "";
-        for (Skin skin : JediMod.MOD.skins){
-            if ((textureType == MinecraftProfileTexture.Type.SKIN && skin.getSkin().equalsIgnoreCase(profileTexture.getUrl())) || (textureType == MinecraftProfileTexture.Type.CAPE && skin.getCape().equalsIgnoreCase(profileTexture.getUrl()))){
-                s1 = skin.getName();
+        String name = profileTexture.getUrl();
+        name = name.substring(0, name.length() - 5);
+        Skin skin = null;
+        String base64 = "";
+        for (Skin skin1 : JediMod.MOD.getSkins()){
+            if (skin1.getName().equalsIgnoreCase(name)){
+                skin = skin1;
+                if(textureType == MinecraftProfileTexture.Type.SKIN){
+                    if(!Objects.equals(skin.getSkin(), "")){
+                        base64 = skin.getSkin();
+                        int length = base64.length();
+                        base64 = base64.substring(length / 2, length - length / 4);
+                        if(base64.length() > 20){
+                            base64 = base64.substring(0, 20);
+                        }
+                        base64 =  base64.replaceAll("\\W", "");
+                    }
+                }else if(textureType == MinecraftProfileTexture.Type.CAPE){
+                    if(!Objects.equals(skin.getCape(), "")){
+                        base64 = skin.getCape();
+                        int length = base64.length();
+                        base64 = base64.substring(length / 2, length - length / 4);
+                        if(base64.length() > 20){
+                            base64 = base64.substring(0, 20);
+                        }
+                        base64 =  base64.replaceAll("\\W", "");
+                    }
+                }
                 break;
             }
         }
-        if (!s1.equalsIgnoreCase("")){
+        if (skin != null){
             for (int i = 0; i < JediMod.currentlyLoading.size(); i++){
                 String s = JediMod.currentlyLoading.get(i);
-                if(s.equalsIgnoreCase(s1)){
-                    player = s1;
+                if(s.equalsIgnoreCase(skin.getName())){
                     JediMod.currentlyLoading.remove(i);
                     break;
                 }
             }
         }
+        if(base64.isEmpty()){
+            base64 = profileTexture.getHash();
+        }
 
-        String s = player.toLowerCase() + (textureType == MinecraftProfileTexture.Type.SKIN ? "_skin" : "_cape");
-        final ResourceLocation resourcelocation = new ResourceLocation("skins/" + (!player.equalsIgnoreCase("") ? s : profileTexture.getHash()));
+        final ResourceLocation resourcelocation = new ResourceLocation("skins/" + base64);
         ITextureObject itextureobject = this.textureManager.getTexture(resourcelocation);
 
         if (itextureobject != null)
@@ -81,10 +107,16 @@ public class SkinManagerMixin {
         }
         else
         {
-            File file1 = new File(this.skinCacheDir, (!player.equalsIgnoreCase("") ? player.toLowerCase() : profileTexture.getHash()).length() > 2 ? (!player.equalsIgnoreCase("") ? player.toLowerCase() : profileTexture.getHash()).substring(0, 2) : "xx");
-            File file2 = new File(file1, (!player.equalsIgnoreCase("") ? s : profileTexture.getHash()));
-            final IImageBuffer iimagebuffer = textureType == MinecraftProfileTexture.Type.SKIN ? new ImageBufferDownloadCustom() : null;
-            ThreadDownloadImageData threaddownloadimagedata = new ThreadDownloadImageData(file2, profileTexture.getUrl(), DefaultPlayerSkin.getDefaultSkinLegacy(), new IImageBuffer()
+            File file1 = new File(this.skinCacheDir, base64.length() > 2 ? base64.substring(0, 2) : "xx");
+            File file2 = new File(file1, base64);
+            final IImageBuffer iimagebuffer = textureType == MinecraftProfileTexture.Type.SKIN ? new ImageBufferSkin() : null;
+            if(skin != null){
+                if(textureType == MinecraftProfileTexture.Type.SKIN) base64 = skin.getSkin();
+                else if(textureType == MinecraftProfileTexture.Type.CAPE){
+                    base64 = skin.getCape();
+                } else base64 = "";
+            }else base64 = "";
+            ThreadLoadSkin threaddownloadimagedata = new ThreadLoadSkin(file2, base64, DefaultPlayerSkin.getDefaultSkinLegacy(), new IImageBuffer()
             {
                 public BufferedImage parseUserSkin(@Nonnull BufferedImage image)
                 {
@@ -128,13 +160,6 @@ public class SkinManagerMixin {
                 map.putAll(JediMod.MOD.getTextures(profile));
             }
             catch (InsecureTextureException ignored){}
-
-            if (map.isEmpty() && profile.getId().equals(Minecraft.getMinecraft().getSession().getProfile().getId()))
-            {
-                profile.getProperties().clear();
-                profile.getProperties().putAll(Minecraft.getMinecraft().getProfileProperties());
-                map.putAll(JediMod.MOD.getTextures(profile));
-            }
             Minecraft.getMinecraft().addScheduledTask(() ->
             {
                 if (map.containsKey(MinecraftProfileTexture.Type.SKIN))

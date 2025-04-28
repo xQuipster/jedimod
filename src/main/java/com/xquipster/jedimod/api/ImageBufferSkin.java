@@ -3,13 +3,12 @@ package com.xquipster.jedimod.api;
 import net.minecraft.client.renderer.IImageBuffer;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.awt.image.ImageObserver;
 
-public class ImageBufferDownloadCustom implements IImageBuffer {
+public class ImageBufferSkin implements IImageBuffer {
     private int[] imageData;
     private int imageWidth;
     private int imageHeight;
@@ -17,14 +16,14 @@ public class ImageBufferDownloadCustom implements IImageBuffer {
     @Nonnull
     public BufferedImage parseUserSkin(BufferedImage image)
     {
-        this.imageWidth = image.getWidth() == 1024 ? 1024 : 64;
-        this.imageHeight = image.getWidth() == 1024 ? 1024 : 64;
+        this.imageWidth = image.getWidth();
+        this.imageHeight = image.getWidth();
         BufferedImage bufferedimage = new BufferedImage(this.imageWidth, this.imageHeight, 2);
         Graphics graphics = bufferedimage.getGraphics();
         graphics.drawImage(image, 0, 0, null);
-        boolean flag = image.getHeight() == 32 || image.getHeight() == 512;
+        boolean flag = image.getWidth() / 2 == image.getHeight();
 
-        int i = (image.getWidth() == 1024 ? 16 : 1);
+        int i = imageWidth / 64;
         if (flag)
         {
             graphics.setColor(new Color(0, 0, 0, 0));

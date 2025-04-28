@@ -10,11 +10,17 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import org.apache.logging.log4j.LogManager;
 
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.Objects;
 
 public class ServerMessage implements IMessage {
@@ -40,48 +46,69 @@ public class ServerMessage implements IMessage {
 
     public static class Handler implements IMessageHandler<ServerMessage, IMessage> {
 
+        private static final HashMap<String, String> receivingSkin = new HashMap<>();
+        private static final HashMap<String, String> receivingCape = new HashMap<>();
+
+        public static void clearTextureBuffer(){
+            receivingCape.clear();
+            receivingSkin.clear();
+        }
+
         @Override
         public IMessage onMessage(ServerMessage message, MessageContext ctx) {
             if (!Objects.equals(message.getText(), "")) {
                 try {
                     String[] s = message.getText().split("~");
-                    if (s.length == 5) {
-                        Skin skin = null;
-                        int w = Integer.parseInt(s[3]);
-                        int h = Integer.parseInt(s[4]);
-                        for (int i = 0; i < JediMod.MOD.getSkins().size(); i++) {
-                            Skin skin1 = JediMod.MOD.getSkins().get(i);
-                            if (skin1.getName().equalsIgnoreCase(s[0])) {
-                                skin = skin1;
-                                JediMod.MOD.skins.remove(i);
-                                break;
+                    if (s.length == 3) {
+                        if(s[1].equalsIgnoreCase("skin")){
+                            if(message.getText().endsWith("1")){
+                                Skin skin = null;
+                                for (int i = 0; i < JediMod.MOD.getSkins().size(); i++) {
+                                    Skin skin1 = JediMod.MOD.getSkins().get(i);
+                                    if (skin1.getName().equalsIgnoreCase(s[0])){
+                                        skin = skin1;
+                                        JediMod.MOD.skins.remove(i);
+                                        break;
+                                    }
+                                }
+                                if (skin == null) {
+                                    skin = new Skin(s[0]);
+                                }
+                                String texture = receivingSkin.getOrDefault(s[0], "") + s[2].substring(0, s[2].length() - 1);
+                                skin.setSkin(texture);
+                                JediMod.MOD.addSkin(skin);
+                                if (!JediMod.MOD.texturesLoad.contains(skin.getName())){
+                                    JediMod.MOD.texturesLoad.add(skin.getName());
+                                }
+                                JediMod.MOD.renderers.remove(skin.getName());
+                            }else if(message.getText().endsWith("0")){
+                                receivingSkin.put(s[0], receivingSkin.getOrDefault(s[0], "") + s[2].substring(0, s[2].length() - 1));
+                            }
+                        }else if(s[1].equalsIgnoreCase("cape")){
+                            if(message.getText().endsWith("1")){
+                                Skin skin = null;
+                                for (int i = 0; i < JediMod.MOD.getSkins().size(); i++) {
+                                    Skin skin1 = JediMod.MOD.getSkins().get(i);
+                                    if (skin1.getName().equalsIgnoreCase(s[0])){
+                                        skin = skin1;
+                                        JediMod.MOD.skins.remove(i);
+                                        break;
+                                    }
+                                }
+                                if (skin == null) {
+                                    skin = new Skin(s[0]);
+                                }
+                                String texture = receivingCape.getOrDefault(s[0], "") + s[2].substring(0, s[2].length() - 1);
+                                skin.setCape(texture);
+                                JediMod.MOD.addSkin(skin);
+                                if (!JediMod.MOD.texturesLoad.contains(skin.getName())){
+                                    JediMod.MOD.texturesLoad.add(skin.getName());
+                                }
+                                JediMod.MOD.renderers.remove(skin.getName());
+                            }else if(message.getText().endsWith("0")){
+                                receivingCape.put(s[0], receivingCape.getOrDefault(s[0], "") + s[2].substring(0, s[2].length() - 1));
                             }
                         }
-                        if (skin == null) {
-                            skin = new Skin(s[0]);
-                        }
-                        if (s[1].equalsIgnoreCase("skin")) {
-                            skin.setSkin(s[2].equalsIgnoreCase("none") ? "" : s[2]);
-                            if (w == 1024 && h == 1024) {
-                                JediMod.hdSkins.add(skin.getName());
-                            }else{
-                                JediMod.hdSkins.remove(skin.getName());
-                            }
-                        } else if (s[1].equalsIgnoreCase("cape")) {
-                            skin.setCape(s[2].equalsIgnoreCase("none") ? "" : s[2]);
-                            if (w == 1024 && h == 512) {
-                                JediMod.hdCapes.add(skin.getName());
-                            }else{
-                                JediMod.hdCapes.remove(skin.getName());
-                            }
-                        }
-                        if (!Objects.equals(skin.getSkin(), "") || !Objects.equals(skin.getCape(), "")) {
-                            JediMod.MOD.addSkin(skin);
-                        }
-                        if (!JediMod.MOD.texturesLoad.contains(skin.getName())){
-                            JediMod.MOD.texturesLoad.add(skin.getName());
-                        }
-                        JediMod.MOD.renderers.remove(skin.getName());
                     }else if (s.length == 4){
                         boolean b = false;
                         if (Minecraft.getMinecraft().getCurrentServerData() != null) {
@@ -126,23 +153,13 @@ public class ServerMessage implements IMessage {
                     }else if (s.length == 2){
                         String p = s[0];
                         if (s[1].equalsIgnoreCase("classic")){
-                            for (int i = 0; i < JediMod.MOD.slim.size(); i++){
-                                if (JediMod.MOD.slim.get(i).equalsIgnoreCase(p)){
-                                    JediMod.MOD.slim.remove(i);
-                                    JediMod.MOD.renderers.remove(p);
-                                    break;
-                                }
+                            if(JediMod.MOD.slim.getOrDefault(p, true)){
+                                JediMod.MOD.slim.put(p, false);
+                                JediMod.MOD.renderers.remove(p);
                             }
                         }else if (s[1].equalsIgnoreCase("slim")){
-                            boolean a = true;
-                            for (int i = 0; i < JediMod.MOD.slim.size(); i++){
-                                if (JediMod.MOD.slim.get(i).equalsIgnoreCase(p)){
-                                    a = false;
-                                    break;
-                                }
-                            }
-                            if (a){
-                                JediMod.MOD.slim.add(p);
+                            if (!JediMod.MOD.slim.getOrDefault(p, false)){
+                                JediMod.MOD.slim.put(p, true);
                                 JediMod.MOD.renderers.remove(p);
                             }
                         }
